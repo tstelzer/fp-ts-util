@@ -1,5 +1,5 @@
 {
-  "name": "@tselzer/fp-ts-util",
+  "name": "@tstelzer/fp-ts-util",
   "version": "0.1.0",
   "description": "fp-ts utility",
   "main": "dist/index.js",
