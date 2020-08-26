@@ -2,7 +2,7 @@
   "name": "@tselzer/fp-ts-util",
   "version": "0.1.0",
   "description": "fp-ts utility",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "sideEffects": false,
   "author": "Timm Stelzer <timmstelzer@gmail.com>",
   "bugs": {
