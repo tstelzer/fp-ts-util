@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    "noEmit": true,
-    "outDir": "./dist",
     "target": "es2015",
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "lib": ["esnext"],
-    "sourceMap": false,
-    "declaration": true,
+    "sourceMap": true,
+    "declaration": false,
     "strict": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
