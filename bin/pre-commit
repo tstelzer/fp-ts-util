@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+stagedFiles=$(git --no-pager diff --name-only --staged --diff-filter=du);
+if [ -z "$stagedFiles" ]; then
+    echo 'No files changed!';
+    exit 0;
+fi
+
+# Check if linter passes.
+npm run lint -- --quiet $stagedFiles
+if [ $? -eq 0 ]; then
+    exit 0;
+fi
+
+# Assert that we're not in an interactive session, see https://stackoverflow.com/a/911213
+if [ ! -t 1 ]; then
+    echo -e "You are using a non-interactive terminal (i.e.: GUI GIT Application). This script can't offer you to automatically fix these errors in this environment!";
+    exit 2;
+fi;
+
+unstagedFiles=$(git --no-pager diff --diff-filter=du --name-only)
+partiallyStagedFiles=$(echo -e "${unstagedFiles}\n${stagedFiles}" | sed '/^[[:space:]]*$/d' | sort | uniq --repeated)
+fullyStagedFiles=$(echo -e "${stagedFiles}\n${partiallyStagedFiles}" | sed '/^[[:space:]]*$/d' | sort | uniq --unique)
+# `sed '/^[[:space:]]*$/d'` removes empty lines
+# `sort` is necessary because uniq relies on the list being sorted
+# `uniq --repeated` returns only lines that are present 2 or more times
+# `uniq --unique` returns only lines that are present exactly once
+
+# Assert that there are no partially staged files.
+if [ -n "$partiallyStagedFiles" ]; then
+    echo -e "Automatically fixing problems is not possible, as the following files are partially staged:\n${partiallyStagedFiles}";
+    exit 3;
+fi
+
+# Apply changes.
+npm run lint -- --quiet --fix $fullyStagedFiles
+stillProblemsAfterFix=$?
+# Move all (previously) fully staged files to the same state again
+while read -r fullyStagedFile; do
+    git add $fullyStagedFile;
+done <<< "$fullyStagedFiles"
+
+if [ $stillProblemsAfterFix -ne 0 ]; then
+    echo -e "Not all problems could be automatically fixed.";
+    exit 4;
+fi

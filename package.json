@@ -1,0 +1,42 @@
+{
+  "name": "fp-ts-util",
+  "description": "fp-ts utility",
+  "main": "src/index.ts",
+  "sideEffects": false,
+  "scripts": {
+    "lint": "eslint --fix src/**/*.ts",
+    "test": "jest --config jest.config.js",
+    "verify": "npm run lint && npm run test",
+    "build": "tsc"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "./bin/pre-commit",
+      "pre-push": "./bin/pre-push"
+    }
+  },
+  "keywords": [
+    "typescript",
+    "fp-ts",
+    "io-ts"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "fp-ts": "^2.8.2",
+    "io-ts": "^2.2.10",
+    "io-ts-types": "^0.5.10"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.10",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "eslint": "^7.7.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.2.5",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.1",
+    "ts-jest": "^26.3.0",
+    "typescript": "^4.0.2"
+  }
+}

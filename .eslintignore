@@ -1,0 +1,20 @@
+node_modules/
+dist/
+bin/
+static/
+*.json
+*.md
+*.properties
+*.bowerrc
+*.dist
+*.png
+*.jpg
+*.gif
+jest.config.js
+LICENSE
+
+*.yml
+*.pem
+
+# Include eslint file.
+!.eslintrc.js
