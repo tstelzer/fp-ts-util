@@ -14,8 +14,8 @@ import * as IOE from 'fp-ts/lib/IOEither';
  * @see https://github.com/gcanti/io-ts/issues/216#issuecomment-621588750
  */
 export function fromEnum<T extends string>(
-    name: string,
     value: Record<string, T>,
+    name: string,
 ): t.Type<T, T, unknown> {
     const isEnum = (input: unknown): input is T =>
         Object.values<unknown>(value).includes(input);
@@ -56,12 +56,19 @@ export const reportError = (error: t.ValidationError): string => {
     } = error.context[0];
 
     // format actual value and prefix with tabs
-    const format = (value: unknown) =>
-        typeof value === 'object'
-            ? JSON.stringify(value, null, 4)
-                  .split('\n')
-                  .reduce((xs, s) => xs + `\t${s}\n`, '')
-            : `\t${value}\n\n`;
+    const format = (value: unknown) => {
+        switch (typeof value) {
+            case 'object':
+                return JSON.stringify(value, null, 4)
+                    .split('\n')
+                    .reduce((xs, s) => xs + `\t${s}\n`, '')
+                    .replace(/"/g, "'");
+            case 'string':
+                return `\t'${value}'\n\n`;
+            default:
+                return `\t${value}\n\n`;
+        }
+    };
 
     if (path) {
         return (
@@ -264,7 +271,7 @@ export const parseEnv = <A extends t.Props>(
 
 /**
  * Weak version of `parseEnv` that doesn't type check `defaults`. Useful when
- * defining defaults outside of typescript, i.e. in JSON.
+ * defining defaults outside of TypeScript, i.e. in JSON.
  *
  * @since 0.1.0
  * @see parseEnv

@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`reportError transforms ValidationErrors to human readable strings 1`] = `
+"-- VALIDATION FAILED --------------------------------------
+
+Unexpected value for type 'CodecA'.
+
+Expected type
+
+	string
+
+at path
+
+	.foo
+
+but got
+
+	undefined
+
+in value
+
+	{
+	    'bar': 'string'
+	}
+
+-----------------------------------------------------------
+
+"
+`;
+
+exports[`reportError transforms ValidationErrors to human readable strings 2`] = `
+"-- VALIDATION FAILED --------------------------------------
+
+Unexpected value for type 'CodecB'.
+
+Expected type
+
+	number
+
+at path
+
+	.root.leaf.baz
+
+but got
+
+	'string'
+
+in value
+
+	{
+	    'root': {
+	        'leaf': {
+	            'baz': 'string'
+	        }
+	    }
+	}
+
+-----------------------------------------------------------
+
+"
+`;
