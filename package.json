@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "fp-ts utility",
   "main": "dist/index.js",
+  "private": false,
   "sideEffects": false,
   "author": "Timm Stelzer <timmstelzer@gmail.com>",
   "bugs": {
