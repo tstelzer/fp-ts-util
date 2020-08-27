@@ -106,18 +106,18 @@ export const reportError = (error: t.ValidationError): string => {
 export const reportErrors = (errors: t.Errors): string =>
     errors.map(reportError).reduce(s => `${s}\n`);
 
-/** @private */
+/** @internal */
 const getIsCodec = <io extends t.Any>(tag: string) => (
     codec: t.Any,
 ): codec is io => (codec as any)._tag === tag;
 
-/** @private */
+/** @internal */
 const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>('InterfaceType');
 
-/** @private */
+/** @internal */
 const isPartialCodec = getIsCodec<t.PartialType<t.Props>>('PartialType');
 
-/** @private */
+/** @internal */
 const getProps = (codec: t.HasProps): t.Props => {
     switch (codec._tag) {
         case 'RefinementType':
@@ -135,16 +135,16 @@ const getProps = (codec: t.HasProps): t.Props => {
     }
 };
 
-/** @private */
+/** @internal */
 const getNameFromProps = (props: t.Props): string =>
     Object.keys(props)
         .map(k => `${k}: ${props[k].name}`)
         .join(', ');
 
-/** @private */
+/** @internal */
 const getPartialTypeName = (inner: string): string => `Partial<${inner}>`;
 
-/** @private */
+/** @internal */
 const getExcessTypeName = (codec: t.Any): string => {
     if (isInterfaceCodec(codec)) {
         return `{| ${getNameFromProps(codec.props)} |}`;
@@ -155,7 +155,7 @@ const getExcessTypeName = (codec: t.Any): string => {
     return `Excess<${codec.name}>`;
 };
 
-/** @private */
+/** @internal */
 const stripKeys = <T = any>(
     o: T,
     props: t.Props,
@@ -173,7 +173,7 @@ const stripKeys = <T = any>(
     return keys.length ? E.left(keys) : E.right(o);
 };
 
-/** @private */
+/** @internal */
 class ExcessType<
     C extends t.Any,
     A = C['_A'],

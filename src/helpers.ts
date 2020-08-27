@@ -2,6 +2,7 @@ import * as t from 'io-ts';
 import * as E from 'fp-ts/lib/Either';
 import {pipe} from 'fp-ts/lib/function';
 
+/** @internal */
 export const assertRight = <T>(result: t.Validation<T>, expected?: T) =>
     pipe(
         result,
@@ -13,6 +14,7 @@ export const assertRight = <T>(result: t.Validation<T>, expected?: T) =>
         ),
     );
 
+/** @internal */
 export const assertLeft = <T>(result: t.Validation<T>, expected?: T) =>
     pipe(
         result,
@@ -24,6 +26,7 @@ export const assertLeft = <T>(result: t.Validation<T>, expected?: T) =>
         ),
     );
 
+/** @internal */
 export const assertLeftMatchesSnapshot = <E, A>(result: E.Either<E, A>) =>
     pipe(
         result,
