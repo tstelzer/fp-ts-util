@@ -251,10 +251,14 @@ export const excess = <C extends t.HasProps>(
  *     console.log, // {"FOO": "string"}
  * );
  */
-export const parseEnv = <A extends t.Props>(
-    codec: t.TypeC<A>,
-    defaults?: Partial<t.TypeOf<typeof codec>>,
-): IOE.IOEither<t.Errors, t.TypeOf<typeof codec>> => () =>
+export const parseEnv = <
+    P extends t.Props,
+    C extends t.InterfaceType<P>,
+    O extends t.TypeOf<C>
+>(
+    codec: C,
+    defaults?: Partial<O>,
+): IOE.IOEither<t.Errors, O> => () =>
     pipe(
         process.env,
         m => (defaults ? {...defaults, ...m} : m),
@@ -276,10 +280,14 @@ export const parseEnv = <A extends t.Props>(
  * @since 0.1.0
  * @see parseEnv
  */
-export const parseEnvW = <A extends t.Props>(
-    codec: t.TypeC<A>,
+export const parseEnvW = <
+    P extends t.Props,
+    C extends t.InterfaceType<P>,
+    O extends t.TypeOf<C>
+>(
+    codec: C,
     defaults?: Record<string, unknown>,
-): IOE.IOEither<t.Errors, t.TypeOf<typeof codec>> => () =>
+): IOE.IOEither<t.Errors, O> => () =>
     pipe(
         process.env,
         m => (defaults ? {...defaults, ...m} : m),
@@ -302,6 +310,7 @@ export const parseEnvW = <A extends t.Props>(
  * Formats the error message via `reportError`.
  *
  * @since 0.2.0
+ * @throws TypeError
  * @example
  * const from = createConstructor(t.type({foo: t.string}));
  * const a = from({foo: 'string'}); // {foo: 'string'}
