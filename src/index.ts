@@ -1,4 +1,4 @@
-import {pipe} from 'fp-ts/lib/function';
+import {identity, pipe} from 'fp-ts/lib/function';
 import * as E from 'fp-ts/lib/Either';
 import * as t from 'io-ts';
 import * as IOE from 'fp-ts/lib/IOEither';
@@ -293,3 +293,39 @@ export const parseEnvW = <A extends t.Props>(
             ),
         codec.decode,
     );
+
+/**
+ * Returns a constructor which parses the value into type `A` (essentially acts
+ * as `identity`), or throws a `TypeError` otherwise. Useful as a shortcut when
+ * parsing values at a boundary and not requiring the `Either`. When the
+ * properties are already parsed, use `encode` instead, otherwise use `decode`.
+ * Formats the error message via `reportError`.
+ *
+ * @since 0.2.0
+ * @example
+ * const from = createConstructor(t.type({foo: t.string}));
+ * const a = from({foo: 'string'}); // {foo: 'string'}
+ * const b = from({foo: 42});       // throws TypeError
+ */
+export const createConstructor = <A>(codec: t.Type<A>) => (value: A) =>
+    pipe(
+        codec.decode(value),
+        E.fold(l => {
+            throw new TypeError(reportErrors(l));
+        }, identity),
+    );
+
+/**
+ * Augments a codec with a constructor.
+ *
+ * @see createConstructor
+ * @since 0.2.0
+ * @example
+ * const codec = with(t.type({foo: t.string}));
+ * const a = codec.from({foo: 'string'}); // {foo: 'string'}
+ * const b = codec.from({foo: 42});       // throws TypeError
+ */
+export const withConstructor = <A>(codec: t.Type<A>) => ({
+    ...codec,
+    from: createConstructor(codec),
+});
