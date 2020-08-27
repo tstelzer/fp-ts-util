@@ -1,9 +1,17 @@
 import * as t from 'io-ts';
+import {NumberFromString} from 'io-ts-types/lib/NumberFromString';
 import * as E from 'fp-ts/lib/Either';
 import {pipe} from 'fp-ts/lib/function';
 
 import {assertRight, assertLeft, assertLeftMatchesSnapshot} from './helpers';
-import {excess, fromEnum, reportErrors, createConstructor} from './index';
+import {
+    excess,
+    fromEnum,
+    reportErrors,
+    createConstructor,
+    parseEnv,
+    parseEnvW,
+} from './index';
 
 describe('excess', () => {
     const codec = excess(t.type({foo: t.string}));
@@ -85,5 +93,75 @@ describe('createConstructor', () => {
     it('throws on rejected values', () => {
         const test = {foo: (42 as unknown) as string};
         expect(() => f(test)).toThrow();
+    });
+});
+
+describe('parseEnv', () => {
+    const previousEnv = process.env;
+
+    beforeEach(() => {
+        jest.resetModules();
+        process.env = {...previousEnv};
+    });
+
+    afterEach(() => {
+        process.env = previousEnv;
+    });
+
+    it('parses environment vars into a value', () => {
+        const codec = t.type({FOO: t.string});
+        process.env.FOO = 'a';
+
+        const run = parseEnv(codec);
+
+        assertRight(run(), {FOO: 'a'});
+    });
+
+    it('uses default values', () => {
+        const codec = t.type({FOO: t.string});
+
+        const run = parseEnv(codec, {FOO: 'z'});
+
+        assertRight(run(), {FOO: 'z'});
+    });
+
+    it('overwrites default values with parsed values', () => {
+        const codec = t.type({FOO: t.string});
+        process.env.FOO = 'x';
+
+        const run = parseEnv(codec, {FOO: 'y'});
+        // const run = parseEnv(codec, {FOO: 'y'});
+
+        assertRight(run(), {FOO: 'x'});
+    });
+
+    it('rejects invalid env values', () => {
+        const codec = t.type({FOO: NumberFromString});
+        process.env.FOO = 'not a string';
+
+        const run = parseEnv(codec);
+
+        assertLeft(run());
+    });
+});
+
+describe('parseEnvW', () => {
+    const previousEnv = process.env;
+
+    beforeEach(() => {
+        jest.resetModules();
+        process.env = {...previousEnv};
+    });
+
+    afterEach(() => {
+        process.env = previousEnv;
+    });
+
+    it('does not type check defaults', () => {
+        const codec = t.type({FOO: t.string});
+
+        const run = parseEnvW(codec, {FOO: 0});
+
+        assertLeft(run());
     });
 });
