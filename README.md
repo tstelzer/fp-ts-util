@@ -2,9 +2,4 @@
 
 ## TODO
 
-- [ ] document
-- [ ] test
-    - [ ] fromEnum
-    - [ ] reportError / reportErrors
-    - [ ] excess
-    - [ ] parseEnv / parseEnvW
+- [ ] test parseEnv / parseEnvW
