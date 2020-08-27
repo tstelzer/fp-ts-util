@@ -238,7 +238,8 @@ export const excess = <C extends t.HasProps>(
 
 /**
  * Takes a codec and returns an IO resolving to a parsed configuration from
- * environment variables. Strips excess properties.
+ * environment variables. Optionally, takes default values as second argument.
+ * Strips excess properties.
  *
  * @since 0.1.0
  * @example
