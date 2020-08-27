@@ -3,13 +3,7 @@ import * as E from 'fp-ts/lib/Either';
 import {pipe} from 'fp-ts/lib/function';
 
 import {assertRight, assertLeft, assertLeftMatchesSnapshot} from './helpers';
-import {
-    excess,
-    fromEnum,
-    reportErrors,
-    withConstructor,
-    createConstructor,
-} from './index';
+import {excess, fromEnum, reportErrors, createConstructor} from './index';
 
 describe('excess', () => {
     const codec = excess(t.type({foo: t.string}));
@@ -80,19 +74,16 @@ describe('reportError', () => {
     });
 });
 
-([
-    ['createConstructor', createConstructor(t.type({foo: t.string}))],
-    ['withConstructor', withConstructor(t.type({foo: t.string})).from],
-] as [string, <A>(a: A) => A][]).forEach(([s, f]) => {
-    describe(s, () => {
-        it('parses valid values', () => {
-            const test = {foo: 'string'};
-            expect(f(test)).toStrictEqual(test);
-        });
+describe('createConstructor', () => {
+    const f = createConstructor(t.type({foo: t.string}));
 
-        it('throws on rejected values', () => {
-            const test = {foo: 42};
-            expect(() => f(test)).toThrow();
-        });
+    it('parses valid values', () => {
+        const test = {foo: 'string'};
+        expect(f(test)).toStrictEqual(test);
+    });
+
+    it('throws on rejected values', () => {
+        const test = {foo: (42 as unknown) as string};
+        expect(() => f(test)).toThrow();
     });
 });

@@ -314,18 +314,3 @@ export const createConstructor = <A>(codec: t.Type<A>) => (value: A) =>
             throw new TypeError(reportErrors(l));
         }, identity),
     );
-
-/**
- * Augments a codec with a constructor.
- *
- * @see createConstructor
- * @since 0.2.0
- * @example
- * const codec = with(t.type({foo: t.string}));
- * const a = codec.from({foo: 'string'}); // {foo: 'string'}
- * const b = codec.from({foo: 42});       // throws TypeError
- */
-export const withConstructor = <A>(codec: t.Type<A>) => ({
-    ...codec,
-    from: createConstructor(codec),
-});
