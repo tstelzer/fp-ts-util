@@ -307,7 +307,9 @@ export const parseEnvW = <A extends t.Props>(
  * const a = from({foo: 'string'}); // {foo: 'string'}
  * const b = from({foo: 42});       // throws TypeError
  */
-export const createConstructor = <A>(codec: t.Type<A>) => (value: A) =>
+export const createConstructor = <A extends t.Any, T extends t.TypeOf<A>>(
+    codec: A,
+) => (value: T): T =>
     pipe(
         codec.decode(value),
         E.fold(l => {
