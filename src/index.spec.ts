@@ -109,35 +109,34 @@ describe('parseEnv', () => {
     });
 
     it('parses environment vars into a value', () => {
-        const codec = t.type({FOO: t.string});
-        process.env.FOO = 'a';
+        const codec = t.type({FOO: t.union([t.number, NumberFromString])});
+        process.env.FOO = '0';
 
         const run = parseEnv(codec);
 
-        assertRight(run(), {FOO: 'a'});
+        assertRight(run(), {FOO: 0});
     });
 
     it('uses default values', () => {
-        const codec = t.type({FOO: t.string});
+        const codec = t.type({FOO: t.union([t.number, NumberFromString])});
 
-        const run = parseEnv(codec, {FOO: 'z'});
+        const run = parseEnv(codec, {FOO: 9});
 
-        assertRight(run(), {FOO: 'z'});
+        assertRight(run(), {FOO: 9});
     });
 
     it('overwrites default values with parsed values', () => {
-        const codec = t.type({FOO: t.string});
-        process.env.FOO = 'x';
+        const codec = t.type({FOO: t.union([t.number, NumberFromString])});
+        process.env.FOO = '0';
 
-        const run = parseEnv(codec, {FOO: 'y'});
-        // const run = parseEnv(codec, {FOO: 'y'});
+        const run = parseEnv(codec, {FOO: 9});
 
-        assertRight(run(), {FOO: 'x'});
+        assertRight(run(), {FOO: 0});
     });
 
     it('rejects invalid env values', () => {
-        const codec = t.type({FOO: NumberFromString});
-        process.env.FOO = 'not a string';
+        const codec = t.type({FOO: t.union([t.number, NumberFromString])});
+        process.env.FOO = 'not a number';
 
         const run = parseEnv(codec);
 
