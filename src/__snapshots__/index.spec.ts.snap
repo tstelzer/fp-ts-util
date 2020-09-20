@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`reportError transforms ValidationErrors to human readable strings 1`] = `
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 1`] = `
 "-- VALIDATION FAILED --------------------------------------
 
 Unexpected value for type 'CodecA'.
@@ -28,7 +28,7 @@ in value
 "
 `;
 
-exports[`reportError transforms ValidationErrors to human readable strings 2`] = `
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 2`] = `
 "-- VALIDATION FAILED --------------------------------------
 
 Unexpected value for type 'CodecB'.
@@ -59,3 +59,40 @@ in value
 
 "
 `;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 3`] = `
+"-- VALIDATION FAILED --------------------------------------
+
+Unexpected value for type 'CodecC'.
+
+Expected type
+
+	Array<number>
+
+at path
+
+	.foo
+
+but got
+
+	undefined
+
+in value
+
+	{
+	    'bar': [
+	        42,
+	        30
+	    ]
+	}
+
+-----------------------------------------------------------
+
+"
+`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 4`] = `"Unexpected value for type 'CodecA'. Expected type 'string' at '.foo' but got 'undefined'. Full value: '{'bar':'string'}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 5`] = `"Unexpected value for type 'CodecB'. Expected type 'number' at '.root.leaf.baz' but got ''string''. Full value: '{'root':{'leaf':{'baz':'string'}}}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 6`] = `"Unexpected value for type 'CodecC'. Expected type 'Array<number>' at '.foo' but got 'undefined'. Full value: '{'bar':[42,30]}'"`;

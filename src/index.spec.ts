@@ -7,8 +7,8 @@ import {assertRight, assertLeft, assertLeftMatchesSnapshot} from './helpers';
 import {
     excess,
     fromEnum,
-    reportErrors,
     createConstructor,
+    createFormatErrors,
     parseEnv,
     parseEnvW,
 } from './index';
@@ -55,29 +55,35 @@ describe('fromEnum', () => {
     });
 });
 
-describe('reportError', () => {
-    it('transforms ValidationErrors to human readable strings', () => {
-        const tests: [t.Any, unknown][] = [
-            [t.type({foo: t.string}, 'CodecA'), {bar: 'string'}],
-            [
-                t.type(
-                    {
-                        root: t.type({
-                            leaf: t.type({
-                                baz: t.number,
+describe('createReportError', () => {
+    [
+        createFormatErrors({format: 'verbose'}),
+        createFormatErrors({format: 'one-line'}),
+    ].forEach(formatErrors => {
+        it('creates a function that transforms ValidationErrors to human readable strings', () => {
+            const tests: [t.Any, unknown][] = [
+                [t.type({foo: t.string}, 'CodecA'), {bar: 'string'}],
+                [
+                    t.type(
+                        {
+                            root: t.type({
+                                leaf: t.type({
+                                    baz: t.number,
+                                }),
                             }),
-                        }),
-                    },
-                    'CodecB',
-                ),
-                {root: {leaf: {baz: 'string'}}},
-            ],
-        ];
+                        },
+                        'CodecB',
+                    ),
+                    {root: {leaf: {baz: 'string'}}},
+                ],
+                [t.type({foo: t.array(t.number)}, 'CodecC'), {bar: [42, 30]}],
+            ];
 
-        tests.forEach(([codec, value]) => {
-            assertLeftMatchesSnapshot(
-                pipe(codec.decode(value), E.mapLeft(reportErrors)),
-            );
+            tests.forEach(([codec, value]) => {
+                assertLeftMatchesSnapshot(
+                    pipe(codec.decode(value), E.mapLeft(formatErrors)),
+                );
+            });
         });
     });
 });

@@ -32,6 +32,53 @@ export function fromEnum<T extends string>(
 /**
  * Takes a validation error and returns a human readable string.
  *
+ * @internal
+ * @since 0.4.0
+ */
+const formatErrorOneLine = (error: t.ValidationError): string => {
+    // the path to the incorrect value
+    const path = error.context.map(({key}) => key).join('.');
+
+    const {
+        // the incorrect value
+        actual: valueAtPath,
+        // the type of the incorrect value at `path`
+        type: {name},
+        // the last item is the "deepest" context, where we get the actual
+        // incorrect value
+    } = error.context[error.context.length - 1];
+
+    const formatErrorValue = (value: unknown) => {
+        switch (typeof value) {
+            case 'object':
+                return JSON.stringify(value, null).replace(/"/g, "'");
+            case 'string':
+                return `'${value}'`;
+            default:
+                return `${value}`;
+        }
+    };
+
+    const {
+        // the actual value we got
+        actual: fullValue,
+        // the name of the type of the entire object
+        type: {name: valueType},
+        // the first item is the "full" context
+    } = error.context[0];
+    return (
+        `Unexpected value for type '${valueType}'.` +
+        ` Expected type '${name}' at '${path}'` +
+        ` but got '${formatErrorValue(valueAtPath)}'.` +
+        ` Full value: '${formatErrorValue(fullValue)}'`
+    );
+};
+
+/**
+ * Takes a validation error and returns a human readable string.
+ * Useful for printing the failures directly to a console.
+ *
+ * @deprecated Use `createReportError` or `createFormatErrors` instead.
  * @since 0.1.0
  */
 export const reportError = (error: t.ValidationError): string => {
@@ -55,8 +102,10 @@ export const reportError = (error: t.ValidationError): string => {
         // the first item is the "full" context
     } = error.context[0];
 
-    // format actual value and prefix with tabs
-    const format = (value: unknown) => {
+    /**
+     * @internal
+     */
+    const formatErrorValue = (value: unknown) => {
         switch (typeof value) {
             case 'object':
                 return JSON.stringify(value, null, 4)
@@ -79,9 +128,9 @@ export const reportError = (error: t.ValidationError): string => {
             `at path\n\n` +
             `\t${path}\n\n` +
             'but got\n\n' +
-            format(valueAtPath) +
+            formatErrorValue(valueAtPath) +
             'in value\n\n' +
-            format(fullValue) +
+            formatErrorValue(fullValue) +
             '\n-----------------------------------------------------------\n\n'
         );
     } else {
@@ -92,19 +141,46 @@ export const reportError = (error: t.ValidationError): string => {
             'With mesages\n\n' +
             `\t"${error.message}"\n\n` +
             'in value\n\n' +
-            format(fullValue) +
+            formatErrorValue(fullValue) +
             '\n-----------------------------------------------------------\n\n'
         );
     }
 };
 
+type FormatErrorOptions = {
+    format: 'verbose' | 'one-line';
+};
+
+/**
+ * Creates a function that takes a validation error and returns a human
+ * readable string. Can be defined in different formatting styles.
+ *
+ * @since 0.4.0
+ */
+export const createFormatError = (options: FormatErrorOptions) => (
+    error: t.ValidationError,
+): string =>
+    options.format === 'verbose'
+        ? reportError(error)
+        : formatErrorOneLine(error);
+
 /**
  * Convenience wrapper around `reportError` for a list of errors.
  *
+ * @deprecated Use `createFormatErrors` instead.
  * @since 0.1.0
  */
 export const reportErrors = (errors: t.Errors): string =>
     errors.map(reportError).reduce(s => `${s}\n`);
+
+/**
+ * Convenience wrapper around `createReportError` for a list of errors.
+ *
+ * @since 0.4.0
+ */
+export const createFormatErrors = (options: FormatErrorOptions) => (
+    errors: t.Errors,
+): string => errors.map(createFormatError(options)).reduce(s => `${s}\n`);
 
 /** @private */
 const getIsCodec = <io extends t.Any>(tag: string) => (
