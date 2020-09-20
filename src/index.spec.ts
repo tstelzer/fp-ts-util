@@ -77,6 +77,10 @@ describe('createReportError', () => {
                     {root: {leaf: {baz: 'string'}}},
                 ],
                 [t.type({foo: t.array(t.number)}, 'CodecC'), {bar: [42, 30]}],
+                [
+                    t.type({foo: t.number, bar: t.string}, 'CodecD'),
+                    {foo: '42', bar: 99},
+                ],
             ];
 
             tests.forEach(([codec, value]) => {

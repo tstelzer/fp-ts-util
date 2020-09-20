@@ -91,8 +91,68 @@ in value
 "
 `;
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 4`] = `"Unexpected value for type 'CodecA'. Expected type 'string' at '.foo' but got 'undefined'. Full value: '{'bar':'string'}'"`;
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 4`] = `
+"-- VALIDATION FAILED --------------------------------------
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 5`] = `"Unexpected value for type 'CodecB'. Expected type 'number' at '.root.leaf.baz' but got ''string''. Full value: '{'root':{'leaf':{'baz':'string'}}}'"`;
+Unexpected value for type 'CodecD'.
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 6`] = `"Unexpected value for type 'CodecC'. Expected type 'Array<number>' at '.foo' but got 'undefined'. Full value: '{'bar':[42,30]}'"`;
+Expected type
+
+	number
+
+at path
+
+	.foo
+
+but got
+
+	'42'
+
+in value
+
+	{
+	    'foo': '42',
+	    'bar': 99
+	}
+
+-----------------------------------------------------------
+
+
+-- VALIDATION FAILED --------------------------------------
+
+Unexpected value for type 'CodecD'.
+
+Expected type
+
+	string
+
+at path
+
+	.bar
+
+but got
+
+	99
+
+in value
+
+	{
+	    'foo': '42',
+	    'bar': 99
+	}
+
+-----------------------------------------------------------
+
+"
+`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 5`] = `"Unexpected value for type 'CodecA'. Expected type 'string' at '.foo' but got 'undefined'. Full value: '{'bar':'string'}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 6`] = `"Unexpected value for type 'CodecB'. Expected type 'number' at '.root.leaf.baz' but got ''string''. Full value: '{'root':{'leaf':{'baz':'string'}}}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 7`] = `"Unexpected value for type 'CodecC'. Expected type 'Array<number>' at '.foo' but got 'undefined'. Full value: '{'bar':[42,30]}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 8`] = `
+"Unexpected value for type 'CodecD'. Expected type 'number' at '.foo' but got ''42''. Full value: '{'foo':'42','bar':99}'
+Unexpected value for type 'CodecD'. Expected type 'string' at '.bar' but got '99'. Full value: '{'foo':'42','bar':99}'"
+`;

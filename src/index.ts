@@ -180,7 +180,8 @@ export const reportErrors = (errors: t.Errors): string =>
  */
 export const createFormatErrors = (options: FormatErrorOptions) => (
     errors: t.Errors,
-): string => errors.map(createFormatError(options)).reduce(s => `${s}\n`);
+): string =>
+    errors.map(createFormatError(options)).reduce((o, s) => `${o}\n${s}`);
 
 /** @private */
 const getIsCodec = <io extends t.Any>(tag: string) => (
