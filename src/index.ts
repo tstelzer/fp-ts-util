@@ -186,7 +186,7 @@ export const createFormatErrors = (options: FormatErrorOptions) => (
 /** @private */
 const getIsCodec = <io extends t.Any>(tag: string) => (
     codec: t.Any,
-): codec is io => (codec as any)._tag === tag;
+): codec is io => (codec as {_tag?: string})._tag === tag;
 
 /** @private */
 const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>('InterfaceType');
@@ -233,10 +233,7 @@ const getExcessTypeName = (codec: t.Any): string => {
 };
 
 /** @private */
-const stripKeys = <T = any>(
-    o: T,
-    props: t.Props,
-): E.Either<Array<string>, T> => {
+const stripKeys = <T>(o: T, props: t.Props): E.Either<Array<string>, T> => {
     const keys = Object.getOwnPropertyNames(o);
     const propsKeys = Object.getOwnPropertyNames(props);
 
@@ -308,7 +305,7 @@ export const excess = <C extends t.HasProps>(
                     ),
                 ),
             ),
-        a => codec.encode((stripKeys(a, props) as E.Right<any>).right),
+        a => codec.encode((stripKeys(a, props) as E.Right<t.TypeOf<C>>).right),
         codec,
     );
 };
