@@ -107,24 +107,88 @@ describe('createConstructor', () => {
 });
 
 describe('parseEnv', () => {
-    const previousEnv = process.env;
+    const env = process.env;
 
     beforeEach(() => {
         jest.resetModules();
-        process.env = {...previousEnv};
+        process.env = {...env};
     });
 
     afterEach(() => {
-        process.env = previousEnv;
+        process.env = env;
     });
 
-    it('parses environment vars into a value', () => {
-        const codec = t.type({FOO: t.union([t.number, NumberFromString])});
-        process.env.FOO = '0';
+    const tests = [
+        {
+            test: 'InterfaceType',
+            codec: t.type({FOO: t.union([t.number, NumberFromString])}),
+            setEnv: () => {
+                process.env.FOO = '0';
+            },
+            expected: {FOO: 0},
+        },
+        {
+            test: 'PartialType',
+            codec: t.partial({FOO: t.union([t.number, NumberFromString])}),
+            setEnv: () => undefined,
+            expected: {FOO: undefined},
+        },
+        {
+            test: 'IntersectionType: Type + PartialType',
+            codec: t.intersection([
+                t.type({FOO: t.union([t.number, NumberFromString])}),
+                t.partial({BAR: t.union([t.number, NumberFromString])}),
+            ]),
+            setEnv: () => {
+                process.env.FOO = '13';
+            },
+            expected: {FOO: 13, BAR: undefined},
+        },
+        {
+            // This is just to make sure that the intersection types
+            // are commutative
+            test: 'IntersectionType: PartialType + Type',
+            codec: t.intersection([
+                t.partial({FOO: t.union([t.number, NumberFromString])}),
+                t.type({BAR: t.union([t.number, NumberFromString])}),
+            ]),
+            setEnv: () => {
+                process.env.BAR = '13';
+            },
+            expected: {BAR: 13, FOO: undefined},
+        },
+        {
+            test: 'IntersectionType: Type + Type',
+            codec: t.intersection([
+                t.type({FOO: t.union([t.number, NumberFromString])}),
+                t.type({BAR: t.union([t.number, NumberFromString])}),
+            ]),
+            setEnv: () => {
+                process.env.FOO = '24';
+                process.env.BAR = '99';
+            },
+            expected: {FOO: 24, BAR: 99},
+        },
+        {
+            test: 'UnionType',
+            codec: t.union([
+                t.type({A: t.union([t.number, NumberFromString])}),
+                t.type({B: t.union([t.number, NumberFromString])}),
+            ]),
+            setEnv: () => {
+                process.env.B = '100';
+            },
+            expected: {A: undefined, B: 100},
+        },
+    ];
 
-        const run = parseEnv(codec);
+    tests.forEach(({test, codec, setEnv, expected}) => {
+        it(`parses environment vars into a value via ${test}`, () => {
+            setEnv();
+            const run = parseEnv(codec);
 
-        assertRight(run(), {FOO: 0});
+            assertRight(run(), expected);
+        });
     });
 
     it('uses default values', () => {

@@ -3,6 +3,28 @@ import * as E from 'fp-ts/lib/Either';
 import * as t from 'io-ts';
 import * as IOE from 'fp-ts/lib/IOEither';
 
+/** @private */
+const NS = 'fp-ts-util';
+
+/** @private */
+const getIsCodec = <io extends t.Any>(tag: string) => (
+    codec: t.Any,
+): codec is io => (codec as {_tag?: string})._tag === tag;
+
+/** @private */
+const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>('InterfaceType');
+
+/** @private */
+const isPartialCodec = getIsCodec<t.PartialType<t.Props>>('PartialType');
+
+/** @private */
+const isInterSectionCodec = getIsCodec<t.IntersectionType<t.Mixed[]>>(
+    'IntersectionType',
+);
+
+/** @private */
+const isUnionCodec = getIsCodec<t.UnionType<t.Mixed[]>>('UnionType');
+
 /**
  * Creates a codec from an `enum`.
  *
@@ -184,17 +206,6 @@ export const createFormatErrors = (options: FormatErrorOptions) => (
     errors.map(createFormatError(options)).reduce((o, s) => `${o}\n${s}`);
 
 /** @private */
-const getIsCodec = <io extends t.Any>(tag: string) => (
-    codec: t.Any,
-): codec is io => (codec as {_tag?: string})._tag === tag;
-
-/** @private */
-const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>('InterfaceType');
-
-/** @private */
-const isPartialCodec = getIsCodec<t.PartialType<t.Props>>('PartialType');
-
-/** @private */
 const getProps = (codec: t.HasProps): t.Props => {
     switch (codec._tag) {
         case 'RefinementType':
@@ -310,10 +321,23 @@ export const excess = <C extends t.HasProps>(
     );
 };
 
+const reduceProps = <A>(
+    env: Record<string, unknown>,
+    codec: t.PartialType<A> | t.InterfaceType<A>,
+) =>
+    Object.keys(codec.props).reduce<Record<string, unknown>>((result, key) => {
+        result[key] = env[key];
+        return result;
+    }, {});
+
 /**
  * Takes a codec and returns an IO resolving to a parsed configuration from
- * environment variables. Optionally, takes default values as second argument.
- * Strips excess properties.
+ * environment variables, stripping any excess properties on the env value.
+ * Optionally, takes default values as second argument.
+ *
+ * @remarks Only accepts codecs for records one layer deep, as env vars can not
+ * be nested, e.g. the codec `t.type({FOO: t.type({BAR: t.string})})` is
+ * invalid.
  *
  * @since 0.1.0
  * @example
@@ -327,24 +351,36 @@ export const excess = <C extends t.HasProps>(
  * );
  */
 export const parseEnv = <
-    P extends t.Props,
-    C extends t.InterfaceType<P>,
-    O extends t.TypeOf<C>
+    A extends t.Props,
+    C extends
+        | t.InterfaceType<A>
+        | t.PartialType<A>
+        | t.IntersectionType<(t.InterfaceType<A> | t.PartialType<A>)[]>
+        | t.UnionType<(t.InterfaceType<A> | t.PartialType<A>)[]>
 >(
     codec: C,
-    defaults?: Partial<O>,
-): IOE.IOEither<t.Errors, O> => () =>
+    defaults?: Record<string, unknown>,
+): IOE.IOEither<t.Errors, t.TypeOf<C>> => () =>
     pipe(
         process.env,
-        m => (defaults ? {...defaults, ...m} : m),
-        m =>
-            Object.keys(codec.props).reduce<Record<string, unknown>>(
-                (result, key) => {
-                    result[key] = m[key];
-                    return result;
-                },
-                {},
-            ),
+        env => (defaults ? {...defaults, ...env} : env),
+        env => {
+            if (isInterfaceCodec(codec) || isPartialCodec(codec)) {
+                return reduceProps(env, codec);
+            }
+            if (isInterSectionCodec(codec) || isUnionCodec(codec)) {
+                return codec.types
+                    .map(c => reduceProps(env, c))
+                    .reduce<Record<string, unknown>>(
+                        (m, a) => ({...m, ...a}),
+                        {},
+                    );
+            }
+            // Don't see how this would ever be thrown, but :shrug:.
+            throw new TypeError(
+                `${NS}.parseEnv: codec must be InterfaceType, UnionType, InterfaceType, or PartialType, but was "${codec?._tag}".`,
+            );
+        },
         codec.decode,
     );
 
@@ -352,8 +388,8 @@ export const parseEnv = <
  * Weak version of `parseEnv` that doesn't type check `defaults`. Useful when
  * defining defaults outside of TypeScript, i.e. in JSON.
  *
+ * @deprecated {@link parseEnv} now defines defaults as unknown.
  * @since 0.1.0
- * @see parseEnv
  */
 export const parseEnvW = <
     P extends t.Props,
@@ -397,6 +433,6 @@ export const createConstructor = <A extends t.Any, T extends t.TypeOf<A>>(
     pipe(
         codec.decode(value),
         E.fold(l => {
-            throw new TypeError(reportErrors(l));
+            throw new TypeError(createFormatErrors({format: 'verbose'})(l));
         }, identity),
     );
