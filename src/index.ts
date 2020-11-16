@@ -17,14 +17,6 @@ const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>('InterfaceType');
 /** @private */
 const isPartialCodec = getIsCodec<t.PartialType<t.Props>>('PartialType');
 
-/** @private */
-const isInterSectionCodec = getIsCodec<t.IntersectionType<t.Mixed[]>>(
-    'IntersectionType',
-);
-
-/** @private */
-const isUnionCodec = getIsCodec<t.UnionType<t.Mixed[]>>('UnionType');
-
 /**
  * Creates a codec from an `enum`.
  *
@@ -321,23 +313,84 @@ export const excess = <C extends t.HasProps>(
     );
 };
 
-const reduceProps = <A>(
+/**
+ * Nested IntersectionType.
+ * @private
+ */
+type IntersectionType<A> = t.IntersectionType<
+    (
+        | t.InterfaceType<A>
+        | t.PartialType<A>
+        | IntersectionType<A>
+        | UnionType<A>
+    )[]
+>;
+
+/**
+ * Nested UnionType.
+ * @private
+ */
+type UnionType<A> = t.UnionType<
+    (
+        | t.InterfaceType<A>
+        | t.PartialType<A>
+        | IntersectionType<A>
+        | UnionType<A>
+    )[]
+>;
+
+/** @private */
+const isInterSectionCodec = <A>(c: t.Any): c is IntersectionType<A> =>
+    ((c as unknown) as {_tag: string})._tag === 'IntersectionType';
+
+/** @private */
+const isUnionCodec = <A>(c: t.Any): c is UnionType<A> =>
+    ((c as unknown) as {_tag: string})._tag === 'UnionType';
+
+/**
+ * Takes a codec
+ * @private
+ */
+const getRecordFromEnv = <A>(
+    codec: t.Type<A>,
     env: Record<string, unknown>,
-    codec: t.PartialType<A> | t.InterfaceType<A>,
-) =>
-    Object.keys(codec.props).reduce<Record<string, unknown>>((result, key) => {
-        result[key] = env[key];
-        return result;
-    }, {});
+): Record<string, unknown> => {
+    const _reduceProps = <A>(
+        env: Record<string, unknown>,
+        codec: t.PartialType<A> | t.InterfaceType<A>,
+    ) =>
+        Object.keys(codec.props).reduce<Record<string, unknown>>(
+            (result, key) => {
+                result[key] = env[key];
+                return result;
+            },
+            {},
+        );
+
+    if (isInterfaceCodec(codec) || isPartialCodec(codec)) {
+        return _reduceProps(env, codec);
+    }
+
+    if (isInterSectionCodec<A>(codec) || isUnionCodec<A>(codec)) {
+        return codec.types
+            .map(innerCodec => getRecordFromEnv(innerCodec, env))
+            .reduce<Record<string, unknown>>((m, a) => ({...m, ...a}), {});
+    }
+
+    // This shouldn't be thrown, as this function should only be called in a
+    // context where the codec is one of the allowed types.
+    throw new TypeError(
+        `${NS}.parseEnv: codec must be InterfaceType, UnionType, InterfaceType, or PartialType`,
+    );
+};
 
 /**
  * Takes a codec and returns an IO resolving to a parsed configuration from
  * environment variables, stripping any excess properties on the env value.
  * Optionally, takes default values as second argument.
  *
- * @remarks Only accepts codecs for records one layer deep, as env vars can not
- * be nested, e.g. the codec `t.type({FOO: t.type({BAR: t.string})})` is
- * invalid.
+ * @remarks For now, only accepts codecs that are a combination of
+ * t.PartialType, t.InterfaceType, t.UnionType and t.IntersectionType.
  *
  * @since 0.1.0
  * @example
@@ -355,7 +408,7 @@ export const parseEnv = <
     C extends
         | t.InterfaceType<A>
         | t.PartialType<A>
-        | t.IntersectionType<(t.InterfaceType<A> | t.PartialType<A>)[]>
+        | IntersectionType<A>
         | t.UnionType<(t.InterfaceType<A> | t.PartialType<A>)[]>
 >(
     codec: C,
@@ -364,23 +417,7 @@ export const parseEnv = <
     pipe(
         process.env,
         env => (defaults ? {...defaults, ...env} : env),
-        env => {
-            if (isInterfaceCodec(codec) || isPartialCodec(codec)) {
-                return reduceProps(env, codec);
-            }
-            if (isInterSectionCodec(codec) || isUnionCodec(codec)) {
-                return codec.types
-                    .map(c => reduceProps(env, c))
-                    .reduce<Record<string, unknown>>(
-                        (m, a) => ({...m, ...a}),
-                        {},
-                    );
-            }
-            // Don't see how this would ever be thrown, but :shrug:.
-            throw new TypeError(
-                `${NS}.parseEnv: codec must be InterfaceType, UnionType, InterfaceType, or PartialType, but was "${codec?._tag}".`,
-            );
-        },
+        env => getRecordFromEnv(codec, env),
         codec.decode,
     );
 

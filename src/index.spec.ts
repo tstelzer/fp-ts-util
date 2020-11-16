@@ -170,6 +170,25 @@ describe('parseEnv', () => {
             expected: {FOO: 24, BAR: 99},
         },
         {
+            test: 'Nested IntersectionType',
+            codec: t.intersection([
+                t.type({A: t.union([t.number, NumberFromString])}),
+                t.intersection([
+                    t.type({B: t.union([t.number, NumberFromString])}),
+                    t.intersection([
+                        t.type({C: t.union([t.number, NumberFromString])}),
+                        t.partial({D: t.union([t.number, NumberFromString])}),
+                    ]),
+                ]),
+            ]),
+            setEnv: () => {
+                process.env.A = '2';
+                process.env.B = '4';
+                process.env.C = '6';
+            },
+            expected: {A: 2, B: 4, C: 6, D: undefined},
+        },
+        {
             test: 'UnionType',
             codec: t.union([
                 t.type({A: t.union([t.number, NumberFromString])}),
