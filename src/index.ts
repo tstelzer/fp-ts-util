@@ -250,8 +250,7 @@ const stripKeys = <T>(o: T, props: t.Props): E.Either<Array<string>, T> => {
     return keys.length ? E.left(keys) : E.right(o);
 };
 
-/** @private */
-class ExcessType<
+export class ExcessType<
     C extends t.Any,
     A = C['_A'],
     O = A,
@@ -315,9 +314,8 @@ export const excess = <C extends t.HasProps>(
 
 /**
  * Nested IntersectionType.
- * @private
  */
-type IntersectionType<A> = t.IntersectionType<
+export type IntersectionType<A> = t.IntersectionType<
     (
         | t.InterfaceType<A>
         | t.PartialType<A>
@@ -330,7 +328,7 @@ type IntersectionType<A> = t.IntersectionType<
  * Nested UnionType.
  * @private
  */
-type UnionType<A> = t.UnionType<
+export type UnionType<A> = t.UnionType<
     (
         | t.InterfaceType<A>
         | t.PartialType<A>
