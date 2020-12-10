@@ -3,19 +3,22 @@ import * as E from 'fp-ts/lib/Either';
 import * as t from 'io-ts';
 import * as IOE from 'fp-ts/lib/IOEither';
 
-/** @private */
+/** @internal */
 const NS = 'fp-ts-util';
 
-/** @private */
+/** @internal */
 const getIsCodec = <io extends t.Any>(tag: string) => (
     codec: t.Any,
 ): codec is io => (codec as {_tag?: string})._tag === tag;
 
-/** @private */
+/** @internal */
 const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>('InterfaceType');
 
-/** @private */
+/** @internal */
 const isPartialCodec = getIsCodec<t.PartialType<t.Props>>('PartialType');
+
+/** @internal */
+const isIntFromString = (u: string) => Number.isInteger(Number.parseInt(u, 10));
 
 /**
  * Creates a codec from an `enum`.
@@ -43,6 +46,38 @@ export function fromEnum<T extends string>(
     );
 }
 
+/** @internal */
+const formatPath = (error: t.ValidationError) => {
+    // Not sure if its just the case that new versions of io-ts don't define
+    // _tag on the context, or if this has always been a private field.
+    type LegacyType = t.Decoder<any, any> & {
+        _tag:
+            | 'UnionType'
+            | 'IntersectionType'
+            | 'InterfaceType'
+            | 'PartialType';
+    };
+
+    return error.context.reduce((m, node, i) => {
+        const parent: t.ContextEntry | undefined = error.context[i - 1];
+        if (
+            !node.key.length ||
+            // Don't render key of union or intersection, because they will
+            // print numerical indices, which don't make much sense to the user
+            // in this context. Users can just look at the root typee and see
+            // the combinations.
+            (isIntFromString(node.key) &&
+                parent &&
+                ['UnionType', 'IntersectionType'].includes(
+                    (parent.type as LegacyType)._tag,
+                ))
+        ) {
+            return m;
+        }
+        return m + `.${node.key}`;
+    }, '');
+};
+
 /**
  * Takes a validation error and returns a human readable string.
  *
@@ -50,8 +85,7 @@ export function fromEnum<T extends string>(
  * @since 0.4.0
  */
 const formatErrorOneLine = (error: t.ValidationError): string => {
-    // the path to the incorrect value
-    const path = error.context.map(({key}) => key).join('.');
+    const path = formatPath(error);
 
     const {
         // the incorrect value
@@ -88,17 +122,9 @@ const formatErrorOneLine = (error: t.ValidationError): string => {
     );
 };
 
-/**
- * Takes a validation error and returns a human readable string.
- * Useful for printing the failures directly to a console.
- *
- * @deprecated Use `createReportError` or `createFormatErrors` instead.
- * @since 0.1.0
- */
-export const reportError = (error: t.ValidationError): string => {
-    // the path to the incorrect value
-    const path = error.context.map(({key}) => key).join('.');
-
+/** @internal */
+const formatErrorVerbose = (error: t.ValidationError): string => {
+    const path = formatPath(error);
     const {
         // the incorrect value
         actual: valueAtPath,
@@ -127,39 +153,45 @@ export const reportError = (error: t.ValidationError): string => {
                     .reduce((xs, s) => xs + `\t${s}\n`, '')
                     .replace(/"/g, "'");
             case 'string':
-                return `\t'${value}'\n\n`;
+                return `\t'${value}'\n`;
             default:
-                return `\t${value}\n\n`;
+                return `\t${value}\n`;
         }
     };
 
     if (path) {
         return (
-            '-- VALIDATION FAILED --------------------------------------\n\n' +
-            `Unexpected value for type '${valueType}'.\n\n` +
-            'Expected type\n\n' +
-            `\t${name}\n\n` +
-            `at path\n\n` +
-            `\t${path}\n\n` +
-            'but got\n\n' +
+            `Unexpected value for type\n` +
+            `\t${valueType}\n` +
+            'Expected type\n' +
+            `\t${name}\n` +
+            `at path\n` +
+            `\t${path}\n` +
+            'but got\n' +
             formatErrorValue(valueAtPath) +
-            'in value\n\n' +
-            formatErrorValue(fullValue) +
-            '\n-----------------------------------------------------------\n\n'
+            'in value\n' +
+            formatErrorValue(fullValue)
         );
     } else {
         // When we have no path, we just show the messages.
         return (
-            '-- VALIDATION FAILED --------------------------------------\n\n' +
             `Unexpected value for type '${valueType}'.\n\n` +
             'With mesages\n\n' +
             `\t"${error.message}"\n\n` +
             'in value\n\n' +
-            formatErrorValue(fullValue) +
-            '\n-----------------------------------------------------------\n\n'
+            formatErrorValue(fullValue)
         );
     }
 };
+
+/**
+ * Takes a validation error and returns a human readable string.
+ * Useful for printing the failures directly to a console.
+ *
+ * @deprecated Use `createReportError` or `createFormatErrors` instead.
+ * @since 0.1.0
+ */
+export const reportError = formatErrorVerbose;
 
 type FormatErrorOptions = {
     format: 'verbose' | 'one-line';
@@ -175,7 +207,7 @@ export const createFormatError = (options: FormatErrorOptions) => (
     error: t.ValidationError,
 ): string =>
     options.format === 'verbose'
-        ? reportError(error)
+        ? formatErrorVerbose(error)
         : formatErrorOneLine(error);
 
 /**
@@ -185,7 +217,7 @@ export const createFormatError = (options: FormatErrorOptions) => (
  * @since 0.1.0
  */
 export const reportErrors = (errors: t.Errors): string =>
-    errors.map(reportError).reduce(s => `${s}\n`);
+    errors.map(formatErrorVerbose).reduce(s => `${s}\n`);
 
 /**
  * Convenience wrapper around `createReportError` for a list of errors.
@@ -197,7 +229,7 @@ export const createFormatErrors = (options: FormatErrorOptions) => (
 ): string =>
     errors.map(createFormatError(options)).reduce((o, s) => `${o}\n${s}`);
 
-/** @private */
+/** @internal */
 const getProps = (codec: t.HasProps): t.Props => {
     switch (codec._tag) {
         case 'RefinementType':
@@ -215,16 +247,16 @@ const getProps = (codec: t.HasProps): t.Props => {
     }
 };
 
-/** @private */
+/** @internal */
 const getNameFromProps = (props: t.Props): string =>
     Object.keys(props)
         .map(k => `${k}: ${props[k].name}`)
         .join(', ');
 
-/** @private */
+/** @internal */
 const getPartialTypeName = (inner: string): string => `Partial<${inner}>`;
 
-/** @private */
+/** @internal */
 const getExcessTypeName = (codec: t.Any): string => {
     if (isInterfaceCodec(codec)) {
         return `{| ${getNameFromProps(codec.props)} |}`;
@@ -235,7 +267,7 @@ const getExcessTypeName = (codec: t.Any): string => {
     return `Excess<${codec.name}>`;
 };
 
-/** @private */
+/** @internal */
 const stripKeys = <T>(o: T, props: t.Props): E.Either<Array<string>, T> => {
     const keys = Object.getOwnPropertyNames(o);
     const propsKeys = Object.getOwnPropertyNames(props);
@@ -326,7 +358,7 @@ export type IntersectionType<A> = t.IntersectionType<
 
 /**
  * Nested UnionType.
- * @private
+ * @internal
  */
 export type UnionType<A> = t.UnionType<
     (
@@ -337,17 +369,17 @@ export type UnionType<A> = t.UnionType<
     )[]
 >;
 
-/** @private */
+/** @internal */
 const isInterSectionCodec = <A>(c: t.Any): c is IntersectionType<A> =>
     ((c as unknown) as {_tag: string})._tag === 'IntersectionType';
 
-/** @private */
+/** @internal */
 const isUnionCodec = <A>(c: t.Any): c is UnionType<A> =>
     ((c as unknown) as {_tag: string})._tag === 'UnionType';
 
 /**
  * Takes a codec
- * @private
+ * @internal
  */
 const getRecordFromEnv = <A>(
     codec: t.Type<A>,

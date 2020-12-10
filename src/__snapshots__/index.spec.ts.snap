@@ -1,52 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 1`] = `
-"-- VALIDATION FAILED --------------------------------------
-
-Unexpected value for type 'CodecA'.
-
+"Unexpected value for type
+	CodecA
 Expected type
-
 	string
-
 at path
-
 	.foo
-
 but got
-
 	undefined
-
 in value
-
 	{
 	    'bar': 'string'
 	}
-
------------------------------------------------------------
-
 "
 `;
 
 exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 2`] = `
-"-- VALIDATION FAILED --------------------------------------
-
-Unexpected value for type 'CodecB'.
-
+"Unexpected value for type
+	CodecB
 Expected type
-
 	number
-
 at path
-
 	.root.leaf.baz
-
 but got
-
 	'string'
-
 in value
-
 	{
 	    'root': {
 	        'leaf': {
@@ -54,105 +33,136 @@ in value
 	        }
 	    }
 	}
-
------------------------------------------------------------
-
 "
 `;
 
 exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 3`] = `
-"-- VALIDATION FAILED --------------------------------------
-
-Unexpected value for type 'CodecC'.
-
+"Unexpected value for type
+	CodecC
 Expected type
-
 	Array<number>
-
 at path
-
 	.foo
-
 but got
-
 	undefined
-
 in value
-
 	{
 	    'bar': [
 	        42,
 	        30
 	    ]
 	}
-
------------------------------------------------------------
-
 "
 `;
 
 exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 4`] = `
-"-- VALIDATION FAILED --------------------------------------
-
-Unexpected value for type 'CodecD'.
-
+"Unexpected value for type
+	CodecD
 Expected type
-
 	number
-
 at path
-
 	.foo
-
 but got
-
 	'42'
-
 in value
-
 	{
 	    'foo': '42',
 	    'bar': 99
 	}
 
------------------------------------------------------------
-
-
--- VALIDATION FAILED --------------------------------------
-
-Unexpected value for type 'CodecD'.
-
+Unexpected value for type
+	CodecD
 Expected type
-
 	string
-
 at path
-
 	.bar
-
 but got
-
 	99
-
 in value
-
 	{
 	    'foo': '42',
 	    'bar': 99
 	}
-
------------------------------------------------------------
-
 "
 `;
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 5`] = `"Unexpected value for type 'CodecA'. Expected type 'string' at '.foo' but got 'undefined'. Full value: '{'bar':'string'}'"`;
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 5`] = `
+"Unexpected value for type
+	CodecE
+Expected type
+	string
+at path
+	.foo
+but got
+	42
+in value
+	{
+	    'foo': 42
+	}
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 6`] = `"Unexpected value for type 'CodecB'. Expected type 'number' at '.root.leaf.baz' but got ''string''. Full value: '{'root':{'leaf':{'baz':'string'}}}'"`;
+Unexpected value for type
+	CodecE
+Expected type
+	number
+at path
+	.bar
+but got
+	undefined
+in value
+	{
+	    'foo': 42
+	}
+"
+`;
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 7`] = `"Unexpected value for type 'CodecC'. Expected type 'Array<number>' at '.foo' but got 'undefined'. Full value: '{'bar':[42,30]}'"`;
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 6`] = `
+"Unexpected value for type
+	CodecF
+Expected type
+	string
+at path
+	.1
+but got
+	42
+in value
+	{
+	    '1': 42,
+	    'bar': 'string'
+	}
 
-exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 8`] = `
+Unexpected value for type
+	CodecF
+Expected type
+	number
+at path
+	.bar
+but got
+	'string'
+in value
+	{
+	    '1': 42,
+	    'bar': 'string'
+	}
+"
+`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 7`] = `"Unexpected value for type 'CodecA'. Expected type 'string' at '.foo' but got 'undefined'. Full value: '{'bar':'string'}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 8`] = `"Unexpected value for type 'CodecB'. Expected type 'number' at '.root.leaf.baz' but got ''string''. Full value: '{'root':{'leaf':{'baz':'string'}}}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 9`] = `"Unexpected value for type 'CodecC'. Expected type 'Array<number>' at '.foo' but got 'undefined'. Full value: '{'bar':[42,30]}'"`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 10`] = `
 "Unexpected value for type 'CodecD'. Expected type 'number' at '.foo' but got ''42''. Full value: '{'foo':'42','bar':99}'
 Unexpected value for type 'CodecD'. Expected type 'string' at '.bar' but got '99'. Full value: '{'foo':'42','bar':99}'"
+`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 11`] = `
+"Unexpected value for type 'CodecE'. Expected type 'string' at '.foo' but got '42'. Full value: '{'foo':42}'
+Unexpected value for type 'CodecE'. Expected type 'number' at '.bar' but got 'undefined'. Full value: '{'foo':42}'"
+`;
+
+exports[`createReportError creates a function that transforms ValidationErrors to human readable strings 12`] = `
+"Unexpected value for type 'CodecF'. Expected type 'string' at '.1' but got '42'. Full value: '{'1':42,'bar':'string'}'
+Unexpected value for type 'CodecF'. Expected type 'number' at '.bar' but got ''string''. Full value: '{'1':42,'bar':'string'}'"
 `;

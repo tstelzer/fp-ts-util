@@ -23,7 +23,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "./bin/pre-commit",
+      "pre-commit": "npm run lint",
       "pre-push": "./bin/pre-push"
     }
   },

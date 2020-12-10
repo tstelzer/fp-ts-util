@@ -81,6 +81,23 @@ describe('createReportError', () => {
                     t.type({foo: t.number, bar: t.string}, 'CodecD'),
                     {foo: '42', bar: 99},
                 ],
+                [
+                    t.union(
+                        [t.type({foo: t.string}), t.type({bar: t.number})],
+                        'CodecE',
+                    ),
+                    {foo: 42},
+                ],
+                [
+                    t.intersection(
+                        [t.type({1: t.string}), t.partial({bar: t.number})],
+                        'CodecF',
+                    ),
+                    {
+                        '1': 42,
+                        bar: 'string',
+                    },
+                ],
             ];
 
             tests.forEach(([codec, value]) => {
