@@ -358,7 +358,6 @@ export type IntersectionType<A> = t.IntersectionType<
 
 /**
  * Nested UnionType.
- * @internal
  */
 export type UnionType<A> = t.UnionType<
     (
