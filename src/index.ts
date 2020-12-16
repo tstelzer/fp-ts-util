@@ -25,8 +25,7 @@ const isIntFromString = (u: string) => Number.isInteger(Number.parseInt(u, 10));
  *
  * Note: This only works with string enums.
  *
- * Original author https://github.com/haysmike
- *
+ * @author https://github.com/haysmike
  * @since 0.1.0
  * @see https://github.com/gcanti/io-ts/issues/216#issuecomment-621588750
  */
@@ -303,8 +302,7 @@ export class ExcessType<
 /**
  * Creates a codec that fails on additional properties.
  *
- * Original author https://github.com/noe132
- *
+ * @author https://github.com/noe132
  * @see https://github.com/gcanti/io-ts/issues/322
  * @since 0.1.0
  * @example
@@ -502,3 +500,22 @@ export const createConstructor = <A extends t.Any, T extends t.TypeOf<A>>(
             throw new TypeError(createFormatErrors({format: 'verbose'})(l));
         }, identity),
     );
+
+/**
+ * Utility asserting that _ extends T, representing T.
+ *
+ * Useful for comparing two types, e.g. the return type of an io-ts codec and
+ * some interface.
+ *
+ * @author https://github.com/gillchristian
+ * @since 0.4.10
+ *
+ * @example simple example
+ * type A = string
+ * type B = Equals<A, string>
+ *
+ * @example with io-ts
+ * const Codec = io.string;
+ * type A = Equals<string, io.TypeOf<typeof Codec>>;
+ */
+export type Equals<T, _ extends T> = T;
