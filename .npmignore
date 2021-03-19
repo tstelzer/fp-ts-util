@@ -2,7 +2,9 @@
 .npm/
 src/
 bin/
+.editorconfig
 .eslintignore
+.eslintrc.js
 jest.config.js
 .prettierrc.json
 tsconfig*
