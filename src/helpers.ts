@@ -3,6 +3,26 @@ import * as E from 'fp-ts/lib/Either';
 import {pipe} from 'fp-ts/lib/function';
 
 /** @internal */
+export const NS = 'fp-ts-util';
+
+/** @internal */
+export const getIsCodec = <io extends t.Any>(tag: string) => (
+    codec: t.Any,
+): codec is io => (codec as {_tag?: string})._tag === tag;
+
+/** @internal */
+export const isInterfaceCodec = getIsCodec<t.InterfaceType<t.Props>>(
+    'InterfaceType',
+);
+
+/** @internal */
+export const isPartialCodec = getIsCodec<t.PartialType<t.Props>>('PartialType');
+
+/** @internal */
+export const isIntFromString = (u: string) =>
+    Number.isInteger(Number.parseInt(u, 10));
+
+/** @internal */
 const format = (v: any) => JSON.stringify(v);
 
 /** @internal */
