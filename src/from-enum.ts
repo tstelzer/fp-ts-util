@@ -7,6 +7,7 @@ import * as t from 'io-ts';
  *
  * @author https://github.com/haysmike
  * @since 0.1.0
+ * @experimental
  * @see https://github.com/gcanti/io-ts/issues/216#issuecomment-621588750
  */
 export function fromEnum<T extends string>(

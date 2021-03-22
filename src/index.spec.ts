@@ -5,29 +5,12 @@ import {pipe} from 'fp-ts/lib/function';
 
 import {assertRight, assertLeft, assertLeftMatchesSnapshot} from './helpers';
 import {
-    excess,
     fromEnum,
     createConstructor,
     createFormatErrors,
     parseEnv,
     parseEnvW,
 } from './index';
-
-describe('excess', () => {
-    const codec = excess(t.type({foo: t.string}));
-
-    it('decodes inputs with exact properties of the codec', () => {
-        const test = {foo: 'a'};
-
-        assertRight(codec.decode(test));
-    });
-
-    it('rejects inputs with excess properties', () => {
-        const test = {foo: 'a', bar: 'b'};
-
-        assertLeft(codec.decode(test));
-    });
-});
 
 describe('fromEnum', () => {
     enum Foo {
