@@ -85,10 +85,6 @@ describe('excess', () => {
         });
     });
 
-    const c = excess(
-        t.union([t.type({foo: t.string}), t.partial({bar: t.number})]),
-    );
-
     negative.forEach(({tests, codec, name}) => {
         it(`rejects inputs with excess properties for ${name}`, () => {
             tests.forEach(test => assertLeft(excess(codec).decode(test)));
