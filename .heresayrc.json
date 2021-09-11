@@ -1,0 +1,10 @@
+{
+  "markdownGlob": "**/*.md",
+  "json": false,
+  "tsConfigFilePath": "tsconfig.json",
+  "outputDirectory": "/home/ts/dev/project/fp-ts-util/doc",
+  "sourceDirectory": "/home/ts/dev/project/fp-ts-util/src",
+  "mode": "library",
+  "entryFilePath": "/home/ts/dev/project/fp-ts-util/src/index.ts",
+  "title": "fp-ts-util"
+}
